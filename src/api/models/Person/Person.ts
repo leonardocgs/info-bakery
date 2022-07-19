@@ -1,9 +1,9 @@
 import cpfIsValid from "../../../../aux/cpfVerifier";
 import hasNullProperty from "../../../../aux/nullVerifier";
-import hasInvalidString from "../../../../aux/stringVerifier";
+import hasInvalidString from "../../../../aux/type-verifiers/stringVerifier";
 import InvalidCpfError from "../../../../error/InvalidCpfError";
-import InvalidStringPropertyError from "../../../../error/InvalidStringPropertyError";
 import NullPropertyError from "../../../../error/NullPropertyError";
+import InvalidStringPropertyError from "../../../../error/type-error/InvalidStringPropertyError";
 
 export default class Person {
   protected firstName: string;

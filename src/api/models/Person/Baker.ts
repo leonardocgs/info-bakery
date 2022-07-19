@@ -1,17 +1,32 @@
+import hasNullProperty from "../../../../aux/nullVerifier";
+import hasInvalidNumber from "../../../../aux/type-verifiers/numberVerifier";
+import NullPropertyError from "../../../../error/NullPropertyError";
+import InvalidNumberPropertyError from "../../../../error/type-error/InvalidNumberPropertyError";
 import Person from "./Person";
 
 export default class Baker extends Person {
   private salary: number;
   constructor(
-    firstName: string | null | undefined,
-    lastName: string | null | undefined,
-    cpf: string | null | undefined,
-    salary: number | null | undefined
+    firstName: string,
+    lastName: string,
+    cpf: string,
+    salary: number
   ) {
-    if (!salary) {
-      throw new Error("Null properties");
-    }
+    const hasSomeNullProperties = hasNullProperty({ salary });
+    const hasInvalidSalary = hasInvalidNumber({ salary });
     super(firstName, lastName, cpf);
+    if (hasSomeNullProperties.isNull) {
+      throw new NullPropertyError("Error", hasInvalidSalary.invalidNumber);
+    }
+    if (hasInvalidSalary.isNumberInvalid) {
+      throw new InvalidNumberPropertyError(
+        "Error",
+        hasInvalidSalary.invalidNumber
+      );
+    }
     this.salary = salary;
+  }
+  public getSalary() {
+    return this.salary;
   }
 }

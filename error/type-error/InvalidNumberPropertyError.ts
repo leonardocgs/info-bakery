@@ -1,6 +1,6 @@
 export default class InvalidNumberPropertyError extends Error {
-  private invalidProperties: number[];
-  constructor(message: string, invalidProperties: number[]) {
+  private invalidProperties: string[];
+  constructor(message: string, invalidProperties: string[]) {
     super(message);
     Object.setPrototypeOf(this, InvalidNumberPropertyError.prototype);
     this.invalidProperties = invalidProperties;

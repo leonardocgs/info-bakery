@@ -1,27 +1,27 @@
 interface IErrorResponse {
-  isStringInvalid: boolean;
-  invalidString?: string[];
+  isNumberInvalid: boolean;
+  invalidNumber?: string[];
 }
-export default function hasInvalidString(data: object) {
+export default function hasInvalidNumber(data: object) {
   const keys = Object.keys(data);
   const values = Object.values(data);
-  const invalidKeys = [];
+  const invalidKeys: string[] = [];
   let invalidVerifier: IErrorResponse;
 
-  values.forEach((Element: string, index) => {
-    if (typeof Element !== "string") {
+  values.forEach((Element: number, index) => {
+    if (typeof Element !== "number") {
       invalidKeys.push(keys[index]);
     }
   });
 
   if (invalidKeys.length !== 0) {
     invalidVerifier = {
-      isStringInvalid: true,
-      invalidString: invalidKeys,
+      isNumberInvalid: true,
+      invalidNumber: invalidKeys,
     };
   } else {
     invalidVerifier = {
-      isStringInvalid: false,
+      isNumberInvalid: false,
     };
   }
   return invalidVerifier;
