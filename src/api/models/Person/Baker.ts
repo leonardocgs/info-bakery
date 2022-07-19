@@ -2,10 +2,12 @@ import hasNullProperty from "../../../../aux/nullVerifier";
 import hasInvalidNumber from "../../../../aux/type-verifiers/numberVerifier";
 import NullPropertyError from "../../../../error/NullPropertyError";
 import InvalidNumberPropertyError from "../../../../error/type-error/InvalidNumberPropertyError";
+import Bread from "../Bread/Bread";
 import Person from "./Person";
 
 export default class Baker extends Person {
   private salary: number;
+  private breads?: Bread[];
   constructor(
     firstName: string,
     lastName: string,
@@ -28,5 +30,8 @@ export default class Baker extends Person {
   }
   public getSalary() {
     return this.salary;
+  }
+  public setBreads(breads: Bread[]) {
+    this.breads = breads;
   }
 }

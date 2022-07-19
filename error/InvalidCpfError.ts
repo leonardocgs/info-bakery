@@ -6,6 +6,6 @@ export default class InvalidCpfError extends Error {
     this.cpf = cpf;
   }
   getMessage() {
-    return `Invalid CPF`;
+    return `Invalid ${this.cpf} CPF`;
   }
 }
