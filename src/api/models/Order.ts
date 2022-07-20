@@ -20,9 +20,9 @@ export default class Order {
   constructor(
     orderId: string,
     costumerCpf: string,
-    breadPost: IBreadOrder[],
     orderTotal: number,
-    orderTime: string
+    orderTime: string,
+    breadPost?: IBreadOrder[]
   ) {
     const hasSomeNullProperty = hasNullProperty({
       orderId,
@@ -54,21 +54,23 @@ export default class Order {
     const hasSomeInvalidNumber = hasInvalidNumber({
       orderTotal,
     });
-    if (hasSomeInvalidNumber.isNumberInvalid) {
-      throw new InvalidNumberPropertyError(
-        "Error",
-        hasSomeInvalidNumber.invalidNumber
-      );
-    }
-    if (this.breadPostHasInvalidString(breadPost)) {
-      throw new Error(
-        "BreadPost has some invalid breadId Type. Expected: string"
-      );
-    }
-    if (this.breadPostHasInvalidAmount(breadPost)) {
-      throw new Error(
-        "BreadPost has some invalid breadAmount Type. Expected: number"
-      );
+    if (!this.breadPost) {
+      if (hasSomeInvalidNumber.isNumberInvalid) {
+        throw new InvalidNumberPropertyError(
+          "Error",
+          hasSomeInvalidNumber.invalidNumber
+        );
+      }
+      if (this.breadPostHasInvalidString(breadPost)) {
+        throw new Error(
+          "BreadPost has some invalid breadId Type. Expected: string"
+        );
+      }
+      if (this.breadPostHasInvalidAmount(breadPost)) {
+        throw new Error(
+          "BreadPost has some invalid breadAmount Type. Expected: number"
+        );
+      }
     }
   }
   // auxiliar methodes to check if breadPost has some invalid property
