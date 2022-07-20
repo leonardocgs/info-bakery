@@ -11,46 +11,51 @@ export default class Bread {
   private breadId: string;
   private breadPrice: number;
   private breadName: string;
-  private bakerCpf: string;
+  private bakerCpf?: string;
   private breadTotal?: number;
   constructor(
     breadId: string,
     breadPrice: number,
     breadName: string,
-    bakerCpf: string
+    bakerCpf?: string
   ) {
-    const hasSomeNullProperties = hasNullProperty({
-      breadId,
-      breadPrice,
-      breadName,
-      bakerCpf,
-    });
+    let validProperties: object;
+    let stringProperties: object;
+    if (bakerCpf) {
+      validProperties = { breadId, breadPrice, breadName, bakerCpf };
+      stringProperties = {
+        breadName,
+        bakerCpf,
+        breadId,
+      };
+    } else {
+      validProperties = { breadId, breadPrice, breadName };
+      stringProperties = { breadName, breadId };
+    }
+    const hasSomeNullProperties = hasNullProperty(validProperties);
     if (hasSomeNullProperties.isNull) {
       throw new NullPropertyError(hasSomeNullProperties.nullProperties);
     }
-    const hasSomeInvalidString = hasInvalidString({
-      breadName,
-      bakerCpf,
-      breadId,
-    });
+    const hasSomeInvalidString = hasInvalidString(stringProperties);
     if (hasSomeInvalidString.isStringInvalid) {
       throw new InvalidStringPropertyError(hasSomeInvalidString.invalidString);
-      const hasSomeInvalidNumber = hasInvalidNumber({
-        breadPrice,
-      });
-      if (hasSomeInvalidNumber.isNumberInvalid) {
-        throw new InvalidNumberPropertyError(
-          hasSomeInvalidNumber.invalidNumber
-        );
-      }
-      if (!cpfIsValid(bakerCpf)) {
-        throw new InvalidCpfError("Error", bakerCpf);
-      }
     }
+    const hasSomeInvalidNumber = hasInvalidNumber({
+      breadPrice,
+    });
+    if (hasSomeInvalidNumber.isNumberInvalid) {
+      throw new InvalidNumberPropertyError(hasSomeInvalidNumber.invalidNumber);
+    }
+
     this.breadId = breadId;
     this.breadPrice = breadPrice;
     this.breadName = breadName;
-    this.bakerCpf = bakerCpf;
+
+    if (!cpfIsValid(bakerCpf) && bakerCpf) {
+      throw new InvalidCpfError(bakerCpf);
+    } else if (bakerCpf) {
+      this.bakerCpf = bakerCpf;
+    }
   }
   // getters and setters
   // getters and setters
