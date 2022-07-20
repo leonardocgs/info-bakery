@@ -1,7 +1,7 @@
 import hasNullProperty from "../../../../aux/nullVerifier";
 import hasInvalidNumber from "../../../../aux/type-verifiers/numberVerifier";
-import NullPropertyError from "../../../../error/NullPropertyError";
-import InvalidNumberPropertyError from "../../../../error/type-error/InvalidNumberPropertyError";
+import NullPropertyError from "../../../../error/class-error/NullPropertyError";
+import InvalidNumberPropertyError from "../../../../error/class-error/type-error/InvalidNumberPropertyError";
 import Bread from "../Bread/Bread";
 import Person from "./Person";
 

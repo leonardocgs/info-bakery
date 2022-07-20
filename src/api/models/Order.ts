@@ -6,7 +6,7 @@ import InvalidCpfError from "../../../error/InvalidCpfError";
 import NullPropertyError from "../../../error/NullPropertyError";
 import InvalidNumberPropertyError from "../../../error/type-error/InvalidNumberPropertyError";
 import IBreadGet from "../../../Interface/IBreadGet";
-import { IBreadOrder } from "./Interface/IBreadOrder";
+import { IBreadOrder } from "../Interface/IBreadOrder";
 import Costumer from "./Person/Costumer";
 
 export default class Order {

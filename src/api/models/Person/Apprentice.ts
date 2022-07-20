@@ -1,5 +1,5 @@
 import cpfIsValid from "../../../../aux/cpfVerifier";
-import InvalidCpfError from "../../../../error/InvalidCpfError";
+import InvalidCpfError from "../../../../error/class-error/InvalidCpfError";
 import Baker from "./Baker";
 import Person from "./Person";
 
