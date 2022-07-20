@@ -18,7 +18,7 @@ const insertIntoBaker = (
   );
   return newBaker;
 };
-const insertIntoDatabase = (baker: Baker, response: Response) => {
+const insertIntoDatabase = async (baker: Baker) => {
   console.log(baker.getCpf());
   pool.getConnection((err, connection) => {
     if (err) {
@@ -32,18 +32,18 @@ const insertIntoDatabase = (baker: Baker, response: Response) => {
         baker.getLastName(),
         baker.getSalary(),
       ],
-      (err) => {
+      (err, response) => {
         if (err) {
           throw new DatabaseError("Insert failed");
         }
+        return response;
         connection.release();
-        response.status(201).json({ message: "Baker inserted" });
       }
     );
   });
 };
 
-export const bakerPost = (request: Request, response: Response) => {
+export const bakerPost = async (request: Request, response: Response) => {
   const { bakerCpf, bakerFirstName, bakerLastName, bakerSalary } = request.body;
   try {
     const newBaker = insertIntoBaker(
@@ -52,7 +52,10 @@ export const bakerPost = (request: Request, response: Response) => {
       bakerLastName,
       bakerSalary
     );
-    return insertIntoDatabase(newBaker, response);
+    await insertIntoDatabase(newBaker);
+    return response
+      .status(200)
+      .json({ message: "Baker inserted successfully" });
   } catch (error) {
     if (error instanceof DatabaseError) {
       return response.status(500).json({ message: error.message });
