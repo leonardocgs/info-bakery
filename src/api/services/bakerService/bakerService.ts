@@ -67,6 +67,37 @@ const bakerAlreadyExists = (bakerCpf: string) => {
     });
   });
 };
+export const getBakerByCpf = (bakerCpf: string): Promise<Baker> => {
+  return new Promise((resolve, reject) => {
+    pool.getConnection((err, connection) => {
+      if (err) {
+        reject(new DatabaseError("Connection failed"));
+      }
+      connection.query(
+        "Select * from baker where baker_cpf = ?",
+        [bakerCpf],
+        (err, response) => {
+          if (err) {
+            reject(new DatabaseError("Select failed"));
+          }
+          connection.release();
+          try {
+            const baker = insertIntoBaker(
+              response[0].baker_cpf,
+              response[0].baker_first_name,
+              response[0].baker_last_name,
+              Number(response[0].baker_salary)
+            );
+            resolve(baker);
+          } catch (error) {
+            reject(error);
+          }
+        }
+      );
+    });
+  });
+};
+
 export const bakerDoesNotExist = (bakerCpf: string) => {
   return new Promise((resolve, reject) => {
     pool.getConnection((err, connection) => {

@@ -6,18 +6,21 @@ import InvalidCpfError from "../../../../error/class-error/InvalidCpfError";
 import NullPropertyError from "../../../../error/class-error/NullPropertyError";
 import InvalidNumberPropertyError from "../../../../error/class-error/type-error/InvalidNumberPropertyError";
 import InvalidStringPropertyError from "../../../../error/class-error/type-error/InvalidStringPropertyError";
+import Baker from "../Person/Baker";
 
 export default class Bread {
   private breadId: string;
   private breadPrice: number;
   private breadName: string;
   private bakerCpf?: string;
+  private baker?: Baker;
   private breadTotal?: number;
   constructor(
     breadId: string,
     breadPrice: number,
     breadName: string,
-    bakerCpf?: string
+    bakerCpf?: string,
+    baker?: Baker
   ) {
     let validProperties: object;
     let stringProperties: object;
@@ -32,14 +35,17 @@ export default class Bread {
       validProperties = { breadId, breadPrice, breadName };
       stringProperties = { breadName, breadId };
     }
+
     const hasSomeNullProperties = hasNullProperty(validProperties);
     if (hasSomeNullProperties.isNull) {
       throw new NullPropertyError(hasSomeNullProperties.nullProperties);
     }
+
     const hasSomeInvalidString = hasInvalidString(stringProperties);
     if (hasSomeInvalidString.isStringInvalid) {
       throw new InvalidStringPropertyError(hasSomeInvalidString.invalidString);
     }
+
     const hasSomeInvalidNumber = hasInvalidNumber({
       breadPrice,
     });
@@ -48,13 +54,20 @@ export default class Bread {
     }
 
     this.breadId = breadId;
+
     this.breadPrice = breadPrice;
+
     this.breadName = breadName;
 
-    if (!cpfIsValid(bakerCpf) && bakerCpf) {
-      throw new InvalidCpfError(bakerCpf);
-    } else if (bakerCpf) {
+    if (bakerCpf) {
+      if (!cpfIsValid(bakerCpf)) {
+        throw new InvalidCpfError(bakerCpf);
+      }
       this.bakerCpf = bakerCpf;
+    }
+
+    if (baker) {
+      this.baker = baker;
     }
   }
   // getters and setters
