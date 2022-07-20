@@ -12,7 +12,8 @@ export default class Baker extends Person {
     firstName: string,
     lastName: string,
     cpf: string,
-    salary: number
+    salary: number,
+    breads?: Bread[]
   ) {
     const hasSomeNullProperties = hasNullProperty({ salary });
     const hasInvalidSalary = hasInvalidNumber({ salary });
@@ -24,6 +25,9 @@ export default class Baker extends Person {
       throw new InvalidNumberPropertyError(hasInvalidSalary.invalidNumber);
     }
     this.salary = salary;
+    if (breads) {
+      this.breads = breads;
+    }
   }
   public getSalary() {
     return this.salary;

@@ -3,10 +3,53 @@ import { v4 as uuidv4 } from "uuid";
 
 import DatabaseError from "../../../../error/db-error/DatabaseError";
 import pool from "../../dbconfig/db";
+import IBreadBaker from "../../Interface/IBreadBaker";
 import Bread from "../../models/Bread/Bread";
 import Baker from "../../models/Person/Baker";
 import { bakerDoesNotExist, getBakerByCpf } from "../bakerService/bakerService";
-
+// get breads by baker cpf
+export const didBakerAlreadyBakeBread = (
+  bakerCpf: string
+): Promise<IBreadBaker> => {
+  const breadBaker: IBreadBaker = {
+    alteradyBaked: false,
+    databaseResponse: undefined,
+  };
+  return new Promise((resolve, reject) => {
+    pool.getConnection((err, connection) => {
+      if (err) {
+        reject(new DatabaseError("Error connecting to database"));
+      }
+      connection.query(
+        `SELECT * FROM bread WHERE baker_cpf = ?`,
+        [bakerCpf],
+        (err, results: []) => {
+          connection.release();
+          if (err) {
+            reject(new DatabaseError("error querying database"));
+          }
+          if (results.length > 0) {
+            breadBaker.alteradyBaked = true;
+            breadBaker.databaseResponse = results;
+          }
+          resolve(breadBaker);
+        }
+      );
+    });
+  });
+};
+// get array of breads class by baker cpf
+export const getBreadsArrayBaker = (breadBaker) => {
+  const breads: Bread[] = breadBaker.databaseResponse.map((Element) => {
+    return new Bread(
+      Element.bread_id,
+      Number(Element.bread_price),
+      Element.bread_name
+    );
+  });
+  return breads;
+};
+// populates a bread class
 const insertBread = (
   breadId: string,
   breadName: string,
@@ -15,6 +58,7 @@ const insertBread = (
 ) => {
   return new Bread(breadId, breadPrice, breadName, bakerCpf);
 };
+// populates a bread class
 const insertBreadComplete = (
   breadId: string,
   breadName: string,
@@ -25,6 +69,7 @@ const insertBreadComplete = (
 
   return bread;
 };
+// get array of bread from database response
 const getBreadArrays = async (databaseResponse) => {
   return new Promise((resolve, reject) => {
     try {
@@ -47,7 +92,7 @@ const getBreadArrays = async (databaseResponse) => {
     }
   });
 };
-
+// insert bread into database
 const insertBreadIntoDatabase = (bread: Bread) => {
   return new Promise((resolve, reject) => {
     pool.getConnection((err, connection) => {
@@ -85,6 +130,7 @@ const getAllBreadsFromDatabase = () => {
           reject(new DatabaseError("Select failed"));
         }
         connection.release();
+
         resolve(getBreadArrays(response));
       });
     });
