@@ -26,10 +26,7 @@ export default class Bread {
       bakerCpf,
     });
     if (hasSomeNullProperties.isNull) {
-      throw new NullPropertyError(
-        "Error",
-        hasSomeNullProperties.nullProperties
-      );
+      throw new NullPropertyError(hasSomeNullProperties.nullProperties);
     }
     const hasSomeInvalidString = hasInvalidString({
       breadName,
@@ -37,16 +34,12 @@ export default class Bread {
       breadId,
     });
     if (hasSomeInvalidString.isStringInvalid) {
-      throw new InvalidStringPropertyError(
-        "Error",
-        hasSomeInvalidString.invalidString
-      );
+      throw new InvalidStringPropertyError(hasSomeInvalidString.invalidString);
       const hasSomeInvalidNumber = hasInvalidNumber({
         breadPrice,
       });
       if (hasSomeInvalidNumber.isNumberInvalid) {
         throw new InvalidNumberPropertyError(
-          "Error",
           hasSomeInvalidNumber.invalidNumber
         );
       }
@@ -82,13 +75,10 @@ export default class Bread {
     const breadIdIsValid = hasInvalidString({ breadId });
     const breadIdIsNull = hasNullProperty({ breadId });
     if (breadIdIsValid.isStringInvalid) {
-      throw new InvalidStringPropertyError(
-        "Error",
-        breadIdIsValid.invalidString
-      );
+      throw new InvalidStringPropertyError(breadIdIsValid.invalidString);
     }
     if (breadIdIsNull.isNull) {
-      throw new NullPropertyError("Error", breadIdIsNull.nullProperties);
+      throw new NullPropertyError(breadIdIsNull.nullProperties);
     }
     this.breadId = breadId;
   }
@@ -96,13 +86,10 @@ export default class Bread {
     const breadPriceIsValid = hasInvalidNumber({ breadPrice });
     const breadPriceIsNull = hasNullProperty({ breadPrice });
     if (breadPriceIsValid.isNumberInvalid) {
-      throw new InvalidNumberPropertyError(
-        "Error",
-        breadPriceIsValid.invalidNumber
-      );
+      throw new InvalidNumberPropertyError(breadPriceIsValid.invalidNumber);
     }
     if (breadPriceIsNull.isNull) {
-      throw new NullPropertyError("Error", breadPriceIsNull.nullProperties);
+      throw new NullPropertyError(breadPriceIsNull.nullProperties);
     }
     this.breadPrice = breadPrice;
   }
@@ -110,13 +97,10 @@ export default class Bread {
     const breadNameIsValid = hasInvalidString({ breadName });
     const breadNameIsNull = hasNullProperty({ breadName });
     if (breadNameIsValid.isStringInvalid) {
-      throw new InvalidStringPropertyError(
-        "Error",
-        breadNameIsValid.invalidString
-      );
+      throw new InvalidStringPropertyError(breadNameIsValid.invalidString);
     }
     if (breadNameIsNull.isNull) {
-      throw new NullPropertyError("Error", breadNameIsNull.nullProperties);
+      throw new NullPropertyError(breadNameIsNull.nullProperties);
     }
     this.breadName = breadName;
   }
@@ -128,13 +112,13 @@ export default class Bread {
     const bakerCpfIsNull = hasNullProperty({ bakerCpf });
     const cpfISInvalid = hasInvalidString({ bakerCpf });
     if (bakerCpfIsNull.isNull) {
-      throw new NullPropertyError("Error", bakerCpfIsNull.nullProperties);
+      throw new NullPropertyError(bakerCpfIsNull.nullProperties);
     }
     if (cpfISInvalid.isStringInvalid) {
-      throw new InvalidStringPropertyError("Error", cpfISInvalid.invalidString);
+      throw new InvalidStringPropertyError(cpfISInvalid.invalidString);
     }
     if (!isCPFValid) {
-      throw new InvalidCpfError("Error", bakerCpf);
+      throw new InvalidCpfError(bakerCpf);
     }
   }
 }

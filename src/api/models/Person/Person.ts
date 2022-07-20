@@ -14,15 +14,15 @@ export default class Person {
     const nullVerifier = hasNullProperty({ firstName, lastName, cpf });
 
     if (nullVerifier.isNull) {
-      throw new NullPropertyError("Error", nullVerifier.nullProperties);
+      throw new NullPropertyError(nullVerifier.nullProperties);
     }
     const nameVerifier = hasInvalidString({ firstName, lastName, cpf });
 
     if (nameVerifier.isStringInvalid) {
-      throw new InvalidStringPropertyError("Error", nameVerifier.invalidString);
+      throw new InvalidStringPropertyError(nameVerifier.invalidString);
     }
     if (!cpfIsValid(cpf)) {
-      throw new InvalidCpfError("ERRO", cpf);
+      throw new InvalidCpfError(cpf);
     }
     this.firstName = firstName;
     this.lastName = lastName;
@@ -44,11 +44,11 @@ export default class Person {
     const nullVerifier = hasNullProperty({ firstName });
     const nameVerifier = hasInvalidString({ firstName });
     if (nullVerifier.isNull) {
-      throw new NullPropertyError("Error", nullVerifier.nullProperties);
+      throw new NullPropertyError(nullVerifier.nullProperties);
     }
 
     if (nameVerifier.invalidString) {
-      throw new InvalidStringPropertyError("Err", nameVerifier.invalidString);
+      throw new InvalidStringPropertyError(nameVerifier.invalidString);
     }
 
     this.firstName = firstName;
@@ -57,10 +57,10 @@ export default class Person {
     const nullVerifier = hasNullProperty({ lastName });
     const nameVerifier = hasInvalidString({ lastName });
     if (nullVerifier.isNull) {
-      throw new NullPropertyError("Error", nullVerifier.nullProperties);
+      throw new NullPropertyError(nullVerifier.nullProperties);
     }
     if (nameVerifier.invalidString) {
-      throw new InvalidStringPropertyError("Err", nameVerifier.invalidString);
+      throw new InvalidStringPropertyError(nameVerifier.invalidString);
     }
 
     this.lastName = lastName;
@@ -69,10 +69,10 @@ export default class Person {
     const nullVerifier = hasNullProperty({ cpf });
     const stringVerifier = hasInvalidString({ cpf });
     if (nullVerifier.isNull) {
-      throw new NullPropertyError("Error", nullVerifier.nullProperties);
+      throw new NullPropertyError(nullVerifier.nullProperties);
     }
     if (stringVerifier.invalidString) {
-      throw new InvalidStringPropertyError("Err", stringVerifier.invalidString);
+      throw new InvalidStringPropertyError(stringVerifier.invalidString);
     }
 
     if (!cpfIsValid(cpf)) {

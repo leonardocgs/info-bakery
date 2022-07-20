@@ -18,13 +18,10 @@ export default class Baker extends Person {
     const hasInvalidSalary = hasInvalidNumber({ salary });
     super(firstName, lastName, cpf);
     if (hasSomeNullProperties.isNull) {
-      throw new NullPropertyError("Error", hasInvalidSalary.invalidNumber);
+      throw new NullPropertyError(hasInvalidSalary.invalidNumber);
     }
     if (hasInvalidSalary.isNumberInvalid) {
-      throw new InvalidNumberPropertyError(
-        "Error",
-        hasInvalidSalary.invalidNumber
-      );
+      throw new InvalidNumberPropertyError(hasInvalidSalary.invalidNumber);
     }
     this.salary = salary;
   }

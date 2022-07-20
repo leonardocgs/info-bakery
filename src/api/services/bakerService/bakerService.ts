@@ -67,6 +67,31 @@ const bakerAlreadyExists = (bakerCpf: string) => {
     });
   });
 };
+export const bakerDoesNotExist = (bakerCpf: string) => {
+  return new Promise((resolve, reject) => {
+    pool.getConnection((err, connection) => {
+      if (err) {
+        reject(new DatabaseError("Connection failed"));
+      }
+      connection.query(
+        "Select COUNT(baker_cpf) as baker_total from baker where baker_cpf = ?",
+        [bakerCpf],
+        (err, response) => {
+          if (err) {
+            reject(new DatabaseError("Select failed"));
+          }
+          if (response[0].baker_total === 0) {
+            reject(new DatabaseError("Baker does not exist"));
+          }
+          connection.release();
+
+          resolve(response);
+        }
+      );
+    });
+  });
+};
+
 export const bakerPost = async (request: Request, response: Response) => {
   try {
     const { bakerCpf, bakerFirstName, bakerLastName, bakerSalary } =
@@ -84,12 +109,6 @@ export const bakerPost = async (request: Request, response: Response) => {
       .status(200)
       .json({ message: "Baker inserted successfully" });
   } catch (error) {
-    console.log("Entrou");
-    if (error instanceof DatabaseError) {
-      return response.status(500).json({ message: error.message });
-    }
-    return response.status(400).json({
-      error: error.getMessage(),
-    });
+    return response.status(500).json({ message: error.message });
   }
 };

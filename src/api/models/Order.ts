@@ -2,9 +2,9 @@ import cpfIsValid from "../../../aux/cpfVerifier";
 import hasNullProperty from "../../../aux/nullVerifier";
 import hasInvalidNumber from "../../../aux/type-verifiers/numberVerifier";
 import hasInvalidString from "../../../aux/type-verifiers/stringVerifier";
-import InvalidCpfError from "../../../error/InvalidCpfError";
-import NullPropertyError from "../../../error/NullPropertyError";
-import InvalidNumberPropertyError from "../../../error/type-error/InvalidNumberPropertyError";
+import InvalidCpfError from "../../../error/class-error/InvalidCpfError";
+import NullPropertyError from "../../../error/class-error/NullPropertyError";
+import InvalidNumberPropertyError from "../../../error/class-error/type-error/InvalidNumberPropertyError";
 import IBreadGet from "../../../Interface/IBreadGet";
 import { IBreadOrder } from "../Interface/IBreadOrder";
 import Costumer from "./Person/Costumer";
@@ -33,7 +33,7 @@ export default class Order {
       orderTime,
     });
     if (hasSomeNullProperty.isNull) {
-      throw new NullPropertyError("err", hasSomeNullProperty.nullProperties);
+      throw new NullPropertyError(hasSomeNullProperty.nullProperties);
     }
     if (breadPost) {
       if (this.breadPostHasNullProperty(breadPost) && breadPost) {
@@ -61,10 +61,7 @@ export default class Order {
       orderTime,
     });
     if (hasSomeInvalidString.isStringInvalid) {
-      throw new InvalidNumberPropertyError(
-        "error",
-        hasSomeInvalidString.invalidString
-      );
+      throw new InvalidNumberPropertyError(hasSomeInvalidString.invalidString);
     }
     if (!cpfIsValid(costumerCpf)) {
       throw new InvalidCpfError("Error", costumerCpf);
@@ -74,10 +71,7 @@ export default class Order {
     });
 
     if (hasSomeInvalidNumber.isNumberInvalid) {
-      throw new InvalidNumberPropertyError(
-        "Error",
-        hasSomeInvalidNumber.invalidNumber
-      );
+      throw new InvalidNumberPropertyError(hasSomeInvalidNumber.invalidNumber);
     }
     this.orderId = orderId;
     this.costumerCpf = costumerCpf;

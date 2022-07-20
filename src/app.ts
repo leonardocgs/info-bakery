@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 
 import bakerController from "./api/controllers/baker/bakerController";
+import breadController from "./api/controllers/bread/breadController";
 
 export const app = express();
 
@@ -21,3 +22,4 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/baker", bakerController);
+app.use("/bread", breadController);
