@@ -1,28 +1,44 @@
 import cpfIsValid from "../../../../aux/cpfVerifier";
+import hasNullProperty from "../../../../aux/nullVerifier";
+import hasInvalidString from "../../../../aux/type-verifiers/stringVerifier";
 import InvalidCpfError from "../../../../error/class-error/InvalidCpfError";
+import NullPropertyError from "../../../../error/class-error/NullPropertyError";
+import InvalidStringPropertyError from "../../../../error/class-error/type-error/InvalidStringPropertyError";
 import Baker from "./Baker";
 import Person from "./Person";
 
 export default class Apprentice extends Person {
-  bakerCpf: string;
+  bakerCpf?: string;
   baker?: Baker;
   constructor(
     firstName: string,
     lastName: string,
     cpf: string,
-    bakerCpf: string
+    bakerCpf?: string,
+    baker?: Baker
   ) {
     super(firstName, lastName, cpf);
-    if (!bakerCpf) {
-      throw new Error("Baker cpf is null");
+    if (bakerCpf) {
+      const hasNullValue = hasNullProperty({ bakerCpf });
+
+      if (hasNullValue.isNull) {
+        throw new NullPropertyError(hasNullValue.nullProperties);
+      }
+      const hasInvalidStringType = hasInvalidString({ bakerCpf });
+      if (hasInvalidStringType.invalidString) {
+        throw new InvalidStringPropertyError(
+          hasInvalidStringType.invalidString
+        );
+      }
+
+      if (!cpfIsValid(bakerCpf)) {
+        throw new InvalidCpfError("Baker cpf is invalid", bakerCpf);
+      }
+      this.bakerCpf = bakerCpf;
     }
-    if (typeof bakerCpf !== "string") {
-      throw new Error("Baker cpf is not a string");
+    if (baker) {
+      this.baker = baker;
     }
-    if (!cpfIsValid(bakerCpf)) {
-      throw new InvalidCpfError("Baker cpf is invalid", bakerCpf);
-    }
-    this.bakerCpf = bakerCpf;
   }
   getBaker() {
     return this.baker;
