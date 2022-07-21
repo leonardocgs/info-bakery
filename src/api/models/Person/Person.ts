@@ -76,7 +76,8 @@ export default class Person {
     }
 
     if (!cpfIsValid(cpf)) {
-      throw new InvalidCpfError("Invalid attribute", cpf);
+      console.log("aquie stou");
+      throw new InvalidCpfError(cpf);
     }
     this.cpf = cpf;
   }

@@ -32,7 +32,7 @@ export default class Apprentice extends Person {
       }
 
       if (!cpfIsValid(bakerCpf)) {
-        throw new InvalidCpfError("Baker cpf is invalid", bakerCpf);
+        throw new InvalidCpfError(bakerCpf);
       }
       this.bakerCpf = bakerCpf;
     }
@@ -42,5 +42,8 @@ export default class Apprentice extends Person {
   }
   getBaker() {
     return this.baker;
+  }
+  getBakerCPf() {
+    return this.bakerCpf;
   }
 }

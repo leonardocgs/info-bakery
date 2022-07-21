@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 
+import apprenticeController from "./api/controllers/apprentice/apprenticeController";
 import bakerController from "./api/controllers/baker/bakerController";
 import breadController from "./api/controllers/bread/breadController";
 
@@ -23,3 +24,4 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/baker", bakerController);
 app.use("/bread", breadController);
+app.use("/apprentice", apprenticeController);

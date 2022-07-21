@@ -1,5 +1,7 @@
 import express from "express";
 
-const router = express.Router();
+import { postApprentice } from "../../services/apprenticeService/apprenticeService";
 
+const router = express.Router();
+router.post("/", postApprentice);
 export default router;
