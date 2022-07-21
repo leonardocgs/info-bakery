@@ -10,7 +10,7 @@ import {
   breadDoesNotExist,
   getBreadByIdFromDatabase,
 } from "../breadService/breadService";
-import { costumerDoesNotExist } from "../costumerController/costumerService";
+import { costumerDoesNotExist } from "../costumerService/costumerService";
 
 const checksPostBread = async (breadPost: IBreadOrder[]) => {
   return new Promise((resolve, reject) => {
@@ -105,6 +105,84 @@ const insertWithOrderClass = async (order: Order) => {
     }
   });
 };
+const gettingDistincOrderId = async () => {
+  return new Promise((resolve, reject) => {
+    try {
+      pool.query(`SELECT DISTINCT order_id FROM buys`, (err, results) => {
+        if (err) {
+          reject(new DatabaseError("error querying database"));
+          return;
+        }
+        resolve(results);
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+const getBreadValueFromDatabase = async (order_id: string) => {
+  return new Promise((resolve, reject) => {
+    try {
+      pool.query(
+        `SELECT bread_id,bread_amount FROM buys WHERE order_id = ?`,
+        [order_id],
+        (err, results) => {
+          if (err) {
+            console.log(err.message);
+            reject(new DatabaseError("error querying database"));
+            return;
+          }
+          resolve(results);
+        }
+      );
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+const breadOrderFactory = async (response): Promise<IBreadOrder[]> => {
+  return new Promise((resolve, reject) => {
+    try {
+      const promise = Promise.all(
+        response.map(async (order) => {
+          const breadOrderFactory: IBreadOrder = {
+            breadId: order.bread_id,
+            breadAmount: order.bread_amount,
+          };
+          return breadOrderFactory;
+        })
+      );
+      resolve(promise);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+const createOrderArray = async (response) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const orderArray = Promise.all(
+        response.map(async (order) => {
+          const breadValues = await getBreadValueFromDatabase(order.order_id);
+          const breadOrder = await breadOrderFactory(breadValues);
+          const breadGet = await returnBreadGet(breadOrder);
+          const orderClass = new Order(
+            order.order_id,
+            order.costumer_cpf,
+            undefined,
+            breadGet
+          );
+          console.log(orderClass);
+          return orderClass;
+        })
+      );
+      resolve(orderArray);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
 
 export const orderPost = async (request: Request, response: Response) => {
   const orderId = uuidv4();
@@ -123,6 +201,16 @@ export const orderPost = async (request: Request, response: Response) => {
     const order = new Order(orderId, costumerCpf, breadPost, breadGetters);
     await insertWithOrderClass(order);
     response.status(201).send(order);
+  } catch (error) {
+    response.status(400).json({ message: error.message });
+  }
+};
+
+export const orderGet = async (request: Request, response: Response) => {
+  try {
+    const orders = await gettingDistincOrderId();
+    const orderArray = await createOrderArray(orders);
+    response.status(200).send(orderArray);
   } catch (error) {
     response.status(400).json({ message: error.message });
   }
