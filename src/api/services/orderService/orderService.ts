@@ -51,6 +51,41 @@ const returnBreadGet = async (
     }
   });
 };
+const orderExists = async (orderId: string) => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      `SELECT * FROM buys WHERE order_id = ?`,
+      [orderId],
+      (err, result: []) => {
+        if (err) {
+          reject(new DatabaseError("DataError"));
+          return;
+        }
+        if (result.length === 0) {
+          reject(new DatabaseError("Order does not exist"));
+          return;
+        }
+        resolve(result);
+      }
+    );
+  });
+};
+
+const deleteOrderFromDatabase = async (orderId: string) => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      `DELETE FROM buys WHERE order_id = ?`,
+      [orderId],
+      (err, result) => {
+        if (err) {
+          reject(new DatabaseError("DataError"));
+          return;
+        }
+        resolve(result);
+      }
+    );
+  });
+};
 
 const insertOrderIntoDatabase = async (
   orderId: string,
@@ -71,7 +106,6 @@ const insertOrderIntoDatabase = async (
           (err, results: []) => {
             connection.release();
             if (err) {
-              console.log(err.message);
               reject(new DatabaseError("error querying database"));
               return;
             }
@@ -89,8 +123,7 @@ const insertWithOrderClass = async (order: Order) => {
     try {
       const promise = Promise.all(
         order.getBreadPost().map(async (bread) => {
-          console.log(bread);
-          const promise = await insertOrderIntoDatabase(
+          insertOrderIntoDatabase(
             order.orderId,
             order.costumerCpf,
             bread.breadId,
@@ -128,7 +161,6 @@ const getBreadValueFromDatabase = async (order_id: string) => {
         [order_id],
         (err, results) => {
           if (err) {
-            console.log(err.message);
             reject(new DatabaseError("error querying database"));
             return;
           }
@@ -173,7 +205,7 @@ const createOrderArray = async (response) => {
             undefined,
             breadGet
           );
-          console.log(orderClass);
+
           return orderClass;
         })
       );
@@ -211,6 +243,16 @@ export const orderGet = async (request: Request, response: Response) => {
     const orders = await gettingDistincOrderId();
     const orderArray = await createOrderArray(orders);
     response.status(200).send(orderArray);
+  } catch (error) {
+    response.status(400).json({ message: error.message });
+  }
+};
+export const orderDelete = async (request: Request, response: Response) => {
+  const { orderId } = request.params;
+  try {
+    await orderExists(orderId);
+    await deleteOrderFromDatabase(orderId);
+    response.status(200).send({ message: "Order deleted" });
   } catch (error) {
     response.status(400).json({ message: error.message });
   }
