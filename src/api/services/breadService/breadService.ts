@@ -7,7 +7,10 @@ import IBreadBaker from "../../Interface/IBreadBaker";
 import Bread from "../../models/Bread/Bread";
 import Baker from "../../models/Person/Baker";
 import { bakerDoesNotExist, getBakerByCpf } from "../bakerService/bakerService";
-// get breads by baker cpf
+/* Checks if a baker already made any bread. 
+If yes, it returns the bread info from database
+*/
+
 export const didBakerAlreadyBakeBread = (
   bakerCpf: string
 ): Promise<IBreadBaker> => {

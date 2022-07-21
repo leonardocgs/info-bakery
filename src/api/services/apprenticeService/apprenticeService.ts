@@ -1,7 +1,11 @@
 import DatabaseError from "../../../../error/db-error/DatabaseError";
 import pool from "../../dbconfig/db";
+import IBakerTeaches from "../../Interface/IBakerTeaches";
 import Apprentice from "../../models/Person/Apprentice";
-import { bakerDoesNotExist } from "../bakerService/bakerService";
+import {
+  bakerDoesNotExist,
+  bakerAlreadyExists,
+} from "../bakerService/bakerService";
 
 const apprenticeAlreadyExists = (apprenticeCpf: string) => {
   return new Promise((resolve, reject) => {
@@ -40,6 +44,43 @@ const createApprentice = (
     bakerCpf
   );
 };
+export const createApprenticeWithoutBakerCpf = (bakerTeacherResponse) => {
+  return new Apprentice(
+    bakerTeacherResponse[0].apprentice_first_name,
+    bakerTeacherResponse[0].apprentice_last_name,
+    bakerTeacherResponse[0].apprentice_cpf
+  );
+};
+export const didBakerHasApprentice = (
+  bakerCpf: string
+): Promise<IBakerTeaches> => {
+  const bakerTeaches: IBakerTeaches = {
+    doesTeach: false,
+    dataBaseResponse: undefined,
+  };
+  return new Promise((resolve, reject) => {
+    pool.getConnection((err, connection) => {
+      if (err) {
+        reject(new DatabaseError("Error connecting to database"));
+      }
+      connection.query(
+        `SELECT *  FROM apprentice WHERE baker_cpf = ?`,
+        [bakerCpf],
+        (err, result: []) => {
+          if (err) {
+            reject(new DatabaseError("DataError"));
+          }
+          connection.release();
+          if (result.length > 0) {
+            bakerTeaches.doesTeach = true;
+            bakerTeaches.dataBaseResponse = result;
+          }
+          resolve(bakerTeaches);
+        }
+      );
+    });
+  });
+};
 const insertApprenticeIntoDatabase = (apprentice: Apprentice) => {
   return new Promise((resolve, reject) => {
     pool.getConnection((err, connection) => {
@@ -73,6 +114,11 @@ export const postApprentice = async (request, response) => {
   try {
     await apprenticeAlreadyExists(apprenticeCpf);
     await bakerDoesNotExist(bakerCpf);
+    await bakerAlreadyExists(apprenticeCpf);
+    const bakerAlreadyHasApprentice = await didBakerHasApprentice(bakerCpf);
+    if (bakerAlreadyHasApprentice.doesTeach) {
+      throw new DatabaseError("Baker already has apprentice");
+    }
     const apprentice = createApprentice(
       apprenticeCpf,
       apprenticeFirstName,
@@ -82,6 +128,6 @@ export const postApprentice = async (request, response) => {
     await insertApprenticeIntoDatabase(apprentice);
     response.status(201).json(apprentice);
   } catch (err) {
-    response.status(400).json(err.message);
+    response.status(400).json({ message: err.message });
   }
 };

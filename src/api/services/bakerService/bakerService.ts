@@ -34,7 +34,8 @@ const insertIntoBaker = (
     bakerFirstName,
     bakerLastName,
     bakerCpf,
-    bakerSalary
+    bakerSalary,
+    undefined
   );
   return newBaker;
 };
@@ -116,7 +117,7 @@ const insertIntoDatabase = (baker: Baker) => {
     });
   });
 };
-const bakerAlreadyExists = (bakerCpf: string) => {
+export const bakerAlreadyExists = (bakerCpf: string) => {
   return new Promise((resolve, reject) => {
     pool.getConnection((err, connection) => {
       if (err) {
@@ -130,7 +131,9 @@ const bakerAlreadyExists = (bakerCpf: string) => {
             reject(new DatabaseError("Select failed"));
           }
           if (response[0].baker_total > 0) {
-            reject(new DatabaseError("Baker already exists"));
+            reject(
+              new DatabaseError(`There is a baker with this cpf ${bakerCpf}`)
+            );
           }
           connection.release();
 
