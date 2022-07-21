@@ -4,6 +4,7 @@ import express from "express";
 import apprenticeController from "./api/controllers/apprentice/apprenticeController";
 import bakerController from "./api/controllers/baker/bakerController";
 import breadController from "./api/controllers/bread/breadController";
+import costumerController from "./api/controllers/costumer/costumerController";
 
 export const app = express();
 
@@ -25,3 +26,4 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/baker", bakerController);
 app.use("/bread", breadController);
 app.use("/apprentice", apprenticeController);
+app.use("/costumer", costumerController);
