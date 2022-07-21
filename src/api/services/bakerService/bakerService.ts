@@ -3,7 +3,12 @@ import { Request, Response } from "express";
 import DatabaseError from "../../../../error/db-error/DatabaseError";
 import pool from "../../dbconfig/db";
 import Bread from "../../models/Bread/Bread";
+import Apprentice from "../../models/Person/Apprentice";
 import Baker from "../../models/Person/Baker";
+import {
+  didBakerHasApprentice,
+  createApprenticeWithoutBakerCpf,
+} from "../apprenticeService/apprenticeService";
 import {
   didBakerAlreadyBakeBread,
   getBreadsArrayBaker,
@@ -14,14 +19,16 @@ const insertIntoBakerComplete = (
   bakerFirstName: string,
   bakerLastName: string,
   bakerSalary: number,
-  breads: Bread[]
+  breads: Bread[],
+  apprentice: Apprentice
 ) => {
   return new Baker(
     bakerFirstName,
     bakerLastName,
     bakerCpf,
     bakerSalary,
-    breads
+    breads,
+    apprentice
   );
 };
 const insertIntoBaker = (
@@ -44,28 +51,38 @@ const getBakerArray = async (databaseResponse) => {
     try {
       const bakerArray = Promise.all(
         databaseResponse.map(async (Element) => {
-          const didBakeAlready = await didBakerAlreadyBakeBread(
-            Element.baker_cpf
-          );
-
-          if (didBakeAlready.alteradyBaked) {
-            const breads = await getBreadsArrayBaker(didBakeAlready);
-
-            return insertIntoBakerComplete(
-              Element.baker_cpf,
-              Element.baker_first_name,
-              Element.baker_last_name,
-              Number(Element.baker_salary),
-              breads
-            );
-          }
-          return insertIntoBakerComplete(
+          const bakerProperties: [
+            string,
+            string,
+            string,
+            number,
+            Bread[] | [],
+            Apprentice | undefined
+          ] = [
             Element.baker_cpf,
             Element.baker_first_name,
             Element.baker_last_name,
             Number(Element.baker_salary),
-            []
+            [],
+            undefined,
+          ];
+          const didBakeAlready = await didBakerAlreadyBakeBread(
+            Element.baker_cpf
           );
+          const didBakerTeaches = await didBakerHasApprentice(
+            Element.baker_cpf
+          );
+          if (didBakeAlready.alteradyBaked) {
+            const breads = await getBreadsArrayBaker(didBakeAlready);
+
+            bakerProperties[4] = breads;
+          }
+          if (didBakerTeaches.doesTeach) {
+            const apprentice = createApprenticeWithoutBakerCpf(didBakerTeaches);
+            bakerProperties[5] = apprentice;
+          }
+
+          return insertIntoBakerComplete(...bakerProperties);
         })
       );
       resolve(bakerArray);

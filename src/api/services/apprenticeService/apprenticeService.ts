@@ -45,10 +45,11 @@ const createApprentice = (
   );
 };
 export const createApprenticeWithoutBakerCpf = (bakerTeacherResponse) => {
+  console.log(bakerTeacherResponse);
   return new Apprentice(
-    bakerTeacherResponse[0].apprentice_first_name,
-    bakerTeacherResponse[0].apprentice_last_name,
-    bakerTeacherResponse[0].apprentice_cpf
+    bakerTeacherResponse.dataBaseResponse[0].apprentice_first_name,
+    bakerTeacherResponse.dataBaseResponse[0].apprentice_last_name,
+    bakerTeacherResponse.dataBaseResponse[0].apprentice_cpf
   );
 };
 export const didBakerHasApprentice = (
