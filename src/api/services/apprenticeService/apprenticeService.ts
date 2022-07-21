@@ -5,6 +5,7 @@ import Apprentice from "../../models/Person/Apprentice";
 import {
   bakerDoesNotExist,
   bakerAlreadyExists,
+  getBakerByCpf,
 } from "../bakerService/bakerService";
 
 const apprenticeAlreadyExists = (apprenticeCpf: string) => {
@@ -52,6 +53,7 @@ export const createApprenticeWithoutBakerCpf = (bakerTeacherResponse) => {
     bakerTeacherResponse.dataBaseResponse[0].apprentice_cpf
   );
 };
+
 export const didBakerHasApprentice = (
   bakerCpf: string
 ): Promise<IBakerTeaches> => {
@@ -82,6 +84,46 @@ export const didBakerHasApprentice = (
     });
   });
 };
+const getApprenticesFromDatabase = () => {
+  return new Promise((resolve, reject) => {
+    pool.getConnection((err, connection) => {
+      if (err) {
+        reject(new DatabaseError("Error connecting to database"));
+      }
+      connection.query(`SELECT * FROM apprentice`, (err, results: []) => {
+        connection.release();
+        if (err) {
+          reject(new DatabaseError("DataError"));
+        }
+        resolve(results);
+      });
+    });
+  });
+};
+const createApprenticeArray = async (dataBaseResponse) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const apprentices = Promise.all(
+        dataBaseResponse.map(async (apprentice) => {
+          const bakerTeacher = await getBakerByCpf(apprentice.baker_cpf);
+
+          return new Apprentice(
+            apprentice.apprentice_first_name,
+            apprentice.apprentice_last_name,
+            apprentice.apprentice_cpf,
+            undefined,
+            bakerTeacher
+          );
+        })
+      );
+
+      resolve(apprentices);
+    } catch (err) {
+      reject(err);
+    }
+  });
+};
+
 const insertApprenticeIntoDatabase = (apprentice: Apprentice) => {
   return new Promise((resolve, reject) => {
     pool.getConnection((err, connection) => {
@@ -128,6 +170,15 @@ export const postApprentice = async (request, response) => {
     );
     await insertApprenticeIntoDatabase(apprentice);
     response.status(201).json(apprentice);
+  } catch (err) {
+    response.status(400).json({ message: err.message });
+  }
+};
+export const getApprentices = async (request, response) => {
+  try {
+    const dataBaseResponse = await getApprenticesFromDatabase();
+    const apprentices = await createApprenticeArray(dataBaseResponse);
+    response.status(200).json(apprentices);
   } catch (err) {
     response.status(400).json({ message: err.message });
   }
