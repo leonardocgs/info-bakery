@@ -1,4 +1,4 @@
-import Bread from "../src/api/models/Bread/Bread";
+import Bread from "../models/Bread/Bread";
 
 export default interface IBreadGet {
   bread: Bread;

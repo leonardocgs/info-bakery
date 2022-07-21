@@ -1,3 +1,4 @@
+import NullPropertyError from "../../../../error/class-error/NullPropertyError";
 import DatabaseError from "../../../../error/db-error/DatabaseError";
 import pool from "../../dbconfig/db";
 import IBakerTeaches from "../../Interface/IBakerTeaches";
@@ -155,6 +156,9 @@ export const postApprentice = async (request, response) => {
   const { apprenticeCpf, apprenticeFirstName, apprenticeLastName, bakerCpf } =
     request.body;
   try {
+    if (!bakerCpf) {
+      throw new NullPropertyError(undefined, "bakerCpf is null");
+    }
     await apprenticeAlreadyExists(apprenticeCpf);
     await bakerDoesNotExist(bakerCpf);
     await bakerAlreadyExists(apprenticeCpf);

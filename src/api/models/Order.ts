@@ -1,37 +1,36 @@
 import cpfIsValid from "../../../aux/cpfVerifier";
 import hasNullProperty from "../../../aux/nullVerifier";
-import hasInvalidNumber from "../../../aux/type-verifiers/numberVerifier";
 import hasInvalidString from "../../../aux/type-verifiers/stringVerifier";
 import InvalidCpfError from "../../../error/class-error/InvalidCpfError";
 import NullPropertyError from "../../../error/class-error/NullPropertyError";
 import InvalidNumberPropertyError from "../../../error/class-error/type-error/InvalidNumberPropertyError";
-import IBreadGet from "../../../Interface/IBreadGet";
-import { IBreadOrder } from "../Interface/IBreadOrder";
+import IBreadGet from "../Interface/IBreadGet";
+import IBreadOrder from "../Interface/IBreadOrder";
+import IOrderConstructorArgs from "../Interface/IOrderConstructorArgs";
 import Costumer from "./Person/Costumer";
 
 export default class Order {
   orderId: string;
-  costumerCpf: string;
+  costumerCpf?: string;
   costumer?: Costumer;
   breadPost?: IBreadOrder[];
   breadGet?: IBreadGet[];
   orderTotal: number;
-  orderTime: string;
+
   constructor(
     orderId: string,
-    costumerCpf: string,
-    orderTotal: number,
-    orderTime: string,
+    costumerCpf?: string,
     breadPost?: IBreadOrder[],
-    breadGet?: IBreadGet[]
+    breadGet?: IBreadGet[],
+    costumer?: Costumer
   ) {
-    const hasSomeNullProperty = hasNullProperty({
-      orderId,
-      costumerCpf,
-      breadPost,
-      orderTotal,
-      orderTime,
-    });
+    let properties: IOrderConstructorArgs;
+    if (costumerCpf) {
+      properties = { orderId, costumerCpf };
+    } else {
+      properties = { orderId };
+    }
+    const hasSomeNullProperty = hasNullProperty(properties);
     if (hasSomeNullProperty.isNull) {
       throw new NullPropertyError(hasSomeNullProperty.nullProperties);
     }
@@ -53,29 +52,25 @@ export default class Order {
     }
     if (breadGet) {
       this.breadGet = breadGet;
+      this.calcOrderTotal();
     }
 
-    const hasSomeInvalidString = hasInvalidString({
-      orderId,
-      costumerCpf,
-      orderTime,
-    });
+    const hasSomeInvalidString = hasInvalidString(properties);
     if (hasSomeInvalidString.isStringInvalid) {
       throw new InvalidNumberPropertyError(hasSomeInvalidString.invalidString);
     }
-    if (!cpfIsValid(costumerCpf)) {
-      throw new InvalidCpfError("Error", costumerCpf);
+    if (costumerCpf) {
+      if (!cpfIsValid(costumerCpf)) {
+        throw new InvalidCpfError("Error", costumerCpf);
+      }
+      this.costumerCpf = costumerCpf;
     }
-    const hasSomeInvalidNumber = hasInvalidNumber({
-      orderTotal,
-    });
 
-    if (hasSomeInvalidNumber.isNumberInvalid) {
-      throw new InvalidNumberPropertyError(hasSomeInvalidNumber.invalidNumber);
-    }
     this.orderId = orderId;
-    this.costumerCpf = costumerCpf;
-    this.orderTime = orderTime;
+
+    if (costumer) {
+      this.costumer = costumer;
+    }
   }
   // auxiliar methodes to check if breadPost has some invalid property
   private breadPostHasInvalidString(breadPost: IBreadOrder[]): boolean {
@@ -104,6 +99,16 @@ export default class Order {
       }
     });
     return nullProperty;
+  }
+  private calcOrderTotal() {
+    const initialValue = 0;
+    const total = this.breadGet.reduce((accumulator, currentValue) => {
+      return (
+        accumulator +
+        currentValue.bread.getBreadPrice() * currentValue.breadAmount
+      );
+    }, initialValue);
+    this.orderTotal = total;
   }
   // Write all the getters
   getOrderId(): string {

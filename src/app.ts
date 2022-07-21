@@ -5,6 +5,7 @@ import apprenticeController from "./api/controllers/apprentice/apprenticeControl
 import bakerController from "./api/controllers/baker/bakerController";
 import breadController from "./api/controllers/bread/breadController";
 import costumerController from "./api/controllers/costumer/costumerController";
+import orderController from "./api/controllers/order/orderController";
 
 export const app = express();
 
@@ -27,3 +28,4 @@ app.use("/baker", bakerController);
 app.use("/bread", breadController);
 app.use("/apprentice", apprenticeController);
 app.use("/costumer", costumerController);
+app.use("/order", orderController);

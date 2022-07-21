@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 
+import NullPropertyError from "../../../../error/class-error/NullPropertyError";
 import DatabaseError from "../../../../error/db-error/DatabaseError";
 import pool from "../../dbconfig/db";
 import IBreadBaker from "../../Interface/IBreadBaker";
@@ -95,6 +96,61 @@ const getBreadArrays = async (databaseResponse) => {
     }
   });
 };
+export const breadDoesNotExist = (breadId: string) => {
+  return new Promise((resolve, reject) => {
+    pool.getConnection((err, connection) => {
+      if (err) {
+        reject(new DatabaseError("Error connecting to database"));
+      }
+      connection.query(
+        `SELECT COUNT (bread_id) as breadTotal FROM bread where bread_id = ?`,
+        [breadId],
+        (err, results) => {
+          connection.release();
+          if (err) {
+            reject(new DatabaseError("error querying database"));
+          }
+          connection.release();
+          if (results[0].breadTotal === 0) {
+            reject(new DatabaseError("bread does not exist"));
+            return;
+          }
+          console.log("Continua");
+
+          resolve(results);
+        }
+      );
+    });
+  });
+};
+export const getBreadByIdFromDatabase = (breadId: string): Promise<Bread> => {
+  return new Promise((resolve, reject) => {
+    pool.getConnection((err, connection) => {
+      if (err) {
+        reject(new DatabaseError("Error connecting to database"));
+        return;
+      }
+      connection.query(
+        `SELECT * FROM bread WHERE bread_id = ?`,
+        [breadId],
+        (err, results) => {
+          connection.release();
+          if (err) {
+            reject(new DatabaseError("error querying database"));
+            return;
+          }
+          const bread = new Bread(
+            results[0].bread_id,
+            Number(results[0].bread_price),
+            results[0].bread_name
+          );
+          resolve(bread);
+        }
+      );
+    });
+  });
+};
+
 // insert bread into database
 const insertBreadIntoDatabase = (bread: Bread) => {
   return new Promise((resolve, reject) => {
@@ -114,8 +170,8 @@ const insertBreadIntoDatabase = (bread: Bread) => {
           if (error) {
             reject(new DatabaseError("Insert failed"));
           }
-          resolve(response);
           connection.release();
+          resolve(response);
         }
       );
     });
@@ -131,7 +187,9 @@ const getAllBreadsFromDatabase = () => {
       connection.query("SELECT * FROM bread", (error, response) => {
         if (error) {
           reject(new DatabaseError("Select failed"));
+          return;
         }
+
         connection.release();
 
         resolve(getBreadArrays(response));
@@ -144,6 +202,10 @@ export const breadPost = async (request: Request, response: Response) => {
   const breadId = uuidv4();
   const { breadName, breadPrice, bakerCpf } = request.body;
   try {
+    console.log(bakerCpf);
+    if (!bakerCpf) {
+      throw new NullPropertyError(undefined, "Baker cpf is null");
+    }
     const bread = insertBread(breadId, breadName, breadPrice, bakerCpf);
 
     await bakerDoesNotExist(bakerCpf);

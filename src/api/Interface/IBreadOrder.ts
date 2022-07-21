@@ -1,4 +1,4 @@
-export interface IBreadOrder {
+export default interface IBreadOrder {
   breadId: string;
   breadAmount: number;
 }
