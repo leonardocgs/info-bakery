@@ -97,26 +97,50 @@ const getAllBakersFromDatabase = () => {
       if (err) {
         reject(new DatabaseError("Error connecting to database"));
       }
-      connection.query(`SELECT * FROM baker`, (err, results: []) => {
-        connection.release();
-        if (err) {
-          reject(new DatabaseError("error querying database"));
-        }
+      connection.query(
+        `SELECT * FROM baker ORDER BY baker_first_name, baker_last_name `,
+        (err, results: []) => {
+          connection.release();
+          if (err) {
+            reject(new DatabaseError("error querying database"));
+            return;
+          }
 
-        resolve(getBakerArray(results));
-      });
+          resolve(getBakerArray(results));
+        }
+      );
     });
   });
 };
 const updateBakerInsideDatabase = (baker: Baker) => {
   return new Promise((resolve, reject) => {
     pool.query(
-      "UPDATE  baker SET baker_first_name  = ?, baker_last_name = ?, baker_salary = ?",
-      [baker.getFirstName(), baker.getLastName(), baker.getSalary()],
+      "UPDATE  baker SET baker_first_name  = ?, baker_last_name = ?, baker_salary = ? where baker_cpf = ?",
+      [
+        baker.getFirstName(),
+        baker.getLastName(),
+        baker.getSalary(),
+        baker.getCpf(),
+      ],
       (err, response) => {
         if (err) {
           console.log(err);
           reject(new DatabaseError("Update failed"));
+          return;
+        }
+        resolve(response);
+      }
+    );
+  });
+};
+const deleteBakerInsideDatabase = (bakerCpf: string) => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      "DELETE FROM baker WHERE baker_cpf = ?",
+      [bakerCpf],
+      (err, response) => {
+        if (err) {
+          reject(new DatabaseError("Delete failed"));
           return;
         }
         resolve(response);
@@ -272,6 +296,16 @@ export const updateBaker = async (request: Request, response: Response) => {
     );
     await updateBakerInsideDatabase(baker);
     response.status(200).json({ message: "Baker updated successfully" });
+  } catch (e) {
+    response.status(500).json({ message: e.message });
+  }
+};
+export const deleteBaker = async (request: Request, response: Response) => {
+  const { bakerCpf } = request.params;
+  try {
+    await bakerDoesNotExist(bakerCpf);
+    await deleteBakerInsideDatabase(bakerCpf);
+    response.status(200).json({ message: "Baker deleted successfully" });
   } catch (e) {
     response.status(500).json({ message: e.message });
   }

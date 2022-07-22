@@ -3,6 +3,7 @@ import DatabaseError from "../../../../error/db-error/DatabaseError";
 import pool from "../../dbconfig/db";
 import IBakerTeaches from "../../Interface/IBakerTeaches";
 import Apprentice from "../../models/Person/Apprentice";
+import Baker from "../../models/Person/Baker";
 import {
   bakerDoesNotExist,
   bakerAlreadyExists,
@@ -106,7 +107,11 @@ const createApprenticeArray = async (dataBaseResponse) => {
     try {
       const apprentices = Promise.all(
         dataBaseResponse.map(async (apprentice) => {
-          const bakerTeacher = await getBakerByCpf(apprentice.baker_cpf);
+          let bakerTeacher: Baker = null;
+          if (apprentice.baker_cpf) {
+            console.log(apprentice.baker_cpf);
+            bakerTeacher = await getBakerByCpf(apprentice.baker_cpf);
+          }
 
           return new Apprentice(
             apprentice.apprentice_first_name,

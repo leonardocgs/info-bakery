@@ -79,7 +79,10 @@ const getBreadArrays = async (databaseResponse) => {
     try {
       const bread = Promise.all(
         databaseResponse.map(async (Element) => {
-          const baker = await getBakerByCpf(Element.baker_cpf);
+          let baker: Baker;
+          if (Element.baker_cpf) {
+            baker = await getBakerByCpf(Element.baker_cpf);
+          }
           const bread = insertBreadComplete(
             Element.bread_id,
             Element.bread_name,
