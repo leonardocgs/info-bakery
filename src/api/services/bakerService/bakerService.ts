@@ -108,6 +108,22 @@ const getAllBakersFromDatabase = () => {
     });
   });
 };
+const updateBakerInsideDatabase = (baker: Baker) => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      "UPDATE  baker SET baker_first_name  = ?, baker_last_name = ?, baker_salary = ?",
+      [baker.getFirstName(), baker.getLastName(), baker.getSalary()],
+      (err, response) => {
+        if (err) {
+          console.log(err);
+          reject(new DatabaseError("Update failed"));
+          return;
+        }
+        resolve(response);
+      }
+    );
+  });
+};
 
 const insertIntoDatabase = (baker: Baker) => {
   return new Promise((resolve, reject) => {
@@ -241,5 +257,22 @@ export const getAllBakers = async (request: Request, response: Response) => {
     return response.status(200).json(allBakers);
   } catch (error) {
     return response.status(500).json({ message: error.message });
+  }
+};
+export const updateBaker = async (request: Request, response: Response) => {
+  const { bakerCpf } = request.params;
+  const { bakerFirstName, bakerLastName, bakerSalary } = request.body;
+  try {
+    await bakerDoesNotExist(bakerCpf);
+    const baker = new Baker(
+      bakerFirstName,
+      bakerLastName,
+      bakerCpf,
+      Number(bakerSalary)
+    );
+    await updateBakerInsideDatabase(baker);
+    response.status(200).json({ message: "Baker updated successfully" });
+  } catch (e) {
+    response.status(500).json({ message: e.message });
   }
 };
