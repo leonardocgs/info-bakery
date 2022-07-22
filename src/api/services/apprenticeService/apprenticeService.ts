@@ -48,12 +48,62 @@ const createApprentice = (
   );
 };
 export const createApprenticeWithoutBakerCpf = (bakerTeacherResponse) => {
-  console.log(bakerTeacherResponse);
   return new Apprentice(
     bakerTeacherResponse.dataBaseResponse[0].apprentice_first_name,
     bakerTeacherResponse.dataBaseResponse[0].apprentice_last_name,
     bakerTeacherResponse.dataBaseResponse[0].apprentice_cpf
   );
+};
+const updateApprenticeInsideDatabase = (apprentice: Apprentice) => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      "UPDATE apprentice SET apprentice_first_name = ?, apprentice_last_name = ? baker_cpf = ? WHERE apprentice_cpf = ?",
+      [
+        apprentice.getFirstName(),
+        apprentice.getLastName(),
+        apprentice.getBakerCPf(),
+        apprentice.getCpf(),
+      ],
+      (err, result) => {
+        if (err) {
+          reject(new DatabaseError("DataError"));
+          return;
+        }
+        resolve(result);
+      }
+    );
+  });
+};
+const getsNumberOfApprenticeInDatabase = (apprenticeCpf): Promise<number> => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      "SELECT COUNT(apprentice_cpf) as apprentice_total FROM apprentice where apprentice_cpf = ?",
+      [apprenticeCpf],
+      (err, result) => {
+        if (err) {
+          reject(new DatabaseError("DataError"));
+          return;
+        }
+        const numberOfTheApprentice = result[0].apprentice_total;
+        resolve(numberOfTheApprentice);
+      }
+    );
+  });
+};
+const checksIfApprenticeExists = async (
+  apprenticeCpf: string
+): Promise<boolean> => {
+  try {
+    const numberOfTheApprentice = await getsNumberOfApprenticeInDatabase(
+      apprenticeCpf
+    );
+    if (numberOfTheApprentice > 0) {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    return Promise.reject(error);
+  }
 };
 
 export const didBakerHasApprentice = (
@@ -109,7 +159,6 @@ const createApprenticeArray = async (dataBaseResponse) => {
         dataBaseResponse.map(async (apprentice) => {
           let bakerTeacher: Baker = null;
           if (apprentice.baker_cpf) {
-            console.log(apprentice.baker_cpf);
             bakerTeacher = await getBakerByCpf(apprentice.baker_cpf);
           }
 
@@ -188,6 +237,32 @@ export const getApprentices = async (request, response) => {
     const dataBaseResponse = await getApprenticesFromDatabase();
     const apprentices = await createApprenticeArray(dataBaseResponse);
     response.status(200).json(apprentices);
+  } catch (err) {
+    response.status(400).json({ message: err.message });
+  }
+};
+export const updateApprentice = async (request, response) => {
+  try {
+    const { apprenticeCpf } = request.params;
+    const { apprenticeFirstName, apprenticeLastName, bakerCpf } = request.body;
+
+    const apprenticeExists = await checksIfApprenticeExists(apprenticeCpf);
+    const bakerAlreadyHasApprentice = await didBakerHasApprentice(bakerCpf);
+    if (bakerAlreadyHasApprentice.doesTeach) {
+      throw new DatabaseError("Baker already has apprentice");
+    }
+    if (apprenticeExists) {
+      const apprentice = createApprentice(
+        apprenticeCpf,
+        apprenticeFirstName,
+        apprenticeLastName,
+        bakerCpf
+      );
+      await updateApprenticeInsideDatabase(apprentice);
+      response.status(200).json(apprentice);
+    } else {
+      throw new DatabaseError("Apprentice does not exist");
+    }
   } catch (err) {
     response.status(400).json({ message: err.message });
   }
