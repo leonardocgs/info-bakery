@@ -74,6 +74,22 @@ const updateApprenticeInsideDatabase = (apprentice: Apprentice) => {
     );
   });
 };
+const deleteApprenticeInsideDatabase = (apprenticeCpf: string) => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      "DELETE FROM apprentice WHERE apprentice_cpf = ?",
+      [apprenticeCpf],
+      (err, result) => {
+        if (err) {
+          reject(new DatabaseError("DataError"));
+          return;
+        }
+        resolve(result);
+      }
+    );
+  });
+};
+
 const getsNumberOfApprenticeInDatabase = (apprenticeCpf): Promise<number> => {
   return new Promise((resolve, reject) => {
     pool.query(
@@ -263,6 +279,20 @@ export const updateApprentice = async (request, response) => {
     } else {
       throw new DatabaseError("Apprentice does not exist");
     }
+  } catch (err) {
+    response.status(400).json({ message: err.message });
+  }
+};
+export const deleteApprentice = async (request, response) => {
+  const { apprenticeCpf } = request.params;
+
+  try {
+    const apprenticeExists = await checksIfApprenticeExists(apprenticeCpf);
+    if (!apprenticeExists) {
+      throw new DatabaseError("Apprentice does not exist");
+    }
+    await deleteApprenticeInsideDatabase(apprenticeCpf);
+    response.status(200).json({ message: "Apprentice deleted" });
   } catch (err) {
     response.status(400).json({ message: err.message });
   }
