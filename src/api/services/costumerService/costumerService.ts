@@ -90,11 +90,14 @@ export const costumerDoesNotExist = (costumerCpf: string) => {
         (err, result) => {
           if (err) {
             reject(new DatabaseError("Entrou"));
+            return;
           }
           connection.release();
           if (result[0].costumer_total === 0) {
             reject(new DatabaseError("Costumer does not exist"));
+            return;
           }
+
           resolve(result);
         }
       );

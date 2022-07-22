@@ -1,3 +1,4 @@
+import { Console } from "console";
 import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 
@@ -45,6 +46,7 @@ const returnBreadGet = async (
           return breadGet;
         })
       );
+
       resolve(breadGetters);
     } catch (error) {
       reject(error);
@@ -87,7 +89,7 @@ const deleteOrderFromDatabase = async (orderId: string) => {
   });
 };
 
-const insertOrderIntoDatabase = async (
+const insertOrderIntoDatabase = (
   orderId: string,
   costumerCpf: string,
   breadId: string,
@@ -109,6 +111,7 @@ const insertOrderIntoDatabase = async (
               reject(new DatabaseError("error querying database"));
               return;
             }
+
             resolve(results);
           }
         );
@@ -118,18 +121,59 @@ const insertOrderIntoDatabase = async (
     }
   });
 };
+const updateOrderDatabaseBreadAmount = (
+  orderId: string,
+  breadId: string,
+  breadAmount: number
+) => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      "UPDATE buys SET bread_amount = ? WHERE order_id = ? AND bread_id = ?",
+      [breadAmount, orderId, breadId],
+      (err, results) => {
+        if (err) {
+          reject(new DatabaseError("error querying database"));
+          return;
+        }
+        resolve(results);
+      }
+    );
+  });
+};
+const checksIfBreadAlreadyExistsInOrder = (
+  breadId: string,
+  OrderId: string
+) => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      "SELECT COUNT (bread_id) as breadTotal FROM buys where bread_id = ? and order_id = ?",
+      [breadId, OrderId],
+      (err, results) => {
+        if (err) {
+          reject(new DatabaseError("error querying database"));
+          return;
+        }
+
+        const { breadTotal } = results[0];
+        if (breadTotal === 0) {
+          reject(new DatabaseError("Bread does not exist in order"));
+        }
+        resolve(results);
+      }
+    );
+  });
+};
 const insertWithOrderClass = async (order: Order) => {
   return new Promise((resolve, reject) => {
     try {
       const promise = Promise.all(
         order.getBreadPost().map(async (bread) => {
-          insertOrderIntoDatabase(
+          await insertOrderIntoDatabase(
             order.orderId,
             order.costumerCpf,
             bread.breadId,
             Number(bread.breadAmount)
           );
-          return promise;
         })
       );
       resolve(promise);
@@ -230,8 +274,11 @@ export const orderPost = async (request: Request, response: Response) => {
     await checksPostBread(breadPost);
     await costumerDoesNotExist(costumerCpf);
     const breadGetters = await returnBreadGet(breadPost);
+
     const order = new Order(orderId, costumerCpf, breadPost, breadGetters);
+
     await insertWithOrderClass(order);
+
     response.status(201).send(order);
   } catch (error) {
     response.status(400).json({ message: error.message });
@@ -253,6 +300,23 @@ export const orderDelete = async (request: Request, response: Response) => {
     await orderExists(orderId);
     await deleteOrderFromDatabase(orderId);
     response.status(200).send({ message: "Order deleted" });
+  } catch (error) {
+    response.status(400).json({ message: error.message });
+  }
+};
+export const changeBreadAmountInOrder = async (
+  request: Request,
+  response: Response
+) => {
+  const { breadId, breadAmount } = request.body;
+  const { orderId } = request.params;
+
+  try {
+    await orderExists(orderId);
+    await breadDoesNotExist(breadId);
+    await checksIfBreadAlreadyExistsInOrder(breadId, orderId);
+    await updateOrderDatabaseBreadAmount(orderId, breadId, breadAmount);
+    response.status(200).send({ message: "Bread amount updated" });
   } catch (error) {
     response.status(400).json({ message: error.message });
   }
