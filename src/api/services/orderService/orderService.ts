@@ -309,6 +309,7 @@ export const changeBreadAmountInOrder = async (
   response: Response
 ) => {
   const { breadId, breadAmount } = request.body;
+  console.log(breadId, breadAmount);
   const { orderId } = request.params;
 
   try {
