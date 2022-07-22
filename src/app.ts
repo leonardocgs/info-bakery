@@ -29,3 +29,6 @@ app.use("/bread", breadController);
 app.use("/apprentice", apprenticeController);
 app.use("/costumer", costumerController);
 app.use("/order", orderController);
+app.use("/", (req, res) => {
+  res.status(404).json({ message: "The requested endpoint doesn't exist" });
+});

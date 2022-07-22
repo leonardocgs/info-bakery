@@ -54,6 +54,36 @@ const getCostumersDataBase = () => {
     });
   });
 };
+const updateCostumerInsideDatabase = (costumer: Costumer) => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      "UPDATE costumer SET costumer_first_name = ?, costumer_last_name = ? WHERE costumer_cpf = ?",
+      [costumer.getFirstName(), costumer.getLastName(), costumer.getCpf()],
+      (err, result) => {
+        if (err) {
+          reject(new DatabaseError("DataError"));
+          return;
+        }
+        resolve(result);
+      }
+    );
+  });
+};
+const deleteCostumerInsideDatabase = (costumerCpf: string) => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      "DELETE FROM costumer WHERE costumer_cpf = ?",
+      [costumerCpf],
+      (err, result) => {
+        if (err) {
+          reject(new DatabaseError("DataError"));
+          return;
+        }
+        resolve(result);
+      }
+    );
+  });
+};
 
 const costumerAlreadyExists = (costumerCpf: string) => {
   return new Promise((resolve, reject) => {
@@ -125,6 +155,34 @@ export const getCostumers = async (request: Request, response: Response) => {
     const databaseResult = await getCostumersDataBase();
     const costumerArray = await getCostumerArray(databaseResult);
     response.status(200).json(costumerArray);
+  } catch (error) {
+    response.status(500).json({ message: error.message });
+  }
+};
+export const updateCostumers = async (request: Request, response: Response) => {
+  const { costumerCpf } = request.params;
+  const { costumerFirstName, costumerLastName } = request.body;
+  try {
+    await costumerDoesNotExist(costumerCpf);
+    const costumer = new Costumer(
+      costumerFirstName,
+      costumerLastName,
+      costumerCpf
+    );
+
+    await updateCostumerInsideDatabase(costumer);
+
+    response.status(200).json(costumer);
+  } catch (error) {
+    response.status(500).json({ message: error.message });
+  }
+};
+export const deleteCostumer = async (request: Request, response: Response) => {
+  const { costumerCpf } = request.params;
+  try {
+    await costumerDoesNotExist(costumerCpf);
+    await deleteCostumerInsideDatabase(costumerCpf);
+    response.status(200).json({ message: "Costumer deleted" });
   } catch (error) {
     response.status(500).json({ message: error.message });
   }
